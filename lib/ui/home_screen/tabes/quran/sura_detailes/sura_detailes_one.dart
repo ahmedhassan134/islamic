@@ -4,43 +4,49 @@ import 'package:islamic/core/models/quran_data.dart';
 import 'package:islamic/core/utiles/app_assets.dart';
 import 'package:islamic/core/utiles/app_colors.dart';
 import 'package:islamic/core/utiles/helper.dart';
+import 'package:islamic/providers/most_recent_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/custom_content.dart';
 
-class SuraDetailes extends StatefulWidget {
-  SuraDetailes({super.key});
+class SuraDetailesOne extends StatefulWidget {
+  SuraDetailesOne({super.key});
 
   @override
-  State<SuraDetailes> createState() => _SuraDetailesState();
+  State<SuraDetailesOne> createState() => _SuraDetailesState();
 }
 
-class _SuraDetailesState extends State<SuraDetailes> {
-  List<String> verses = [];
+class _SuraDetailesState extends State<SuraDetailesOne> {
+ String verse="";
+
+late MostRecentProvider most;
 
   @override
   Widget build(BuildContext context) {
+
     var index = ModalRoute.of(context)?.settings.arguments as int;
-    if (verses.isEmpty) {
-      loadFilesQuran(index);
+    if (verse.isEmpty) {
+      loadQuran(index);
     }
+     most=Provider.of<MostRecentProvider>(context);
 
     Helper.init(context);
     return Container(
       margin: EdgeInsets.only(bottom: Helper.screenHeight * .06),
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(AppAssets.souraDetailes),
-          fit: BoxFit.fill,
-        ),
-      ),
+      // decoration: BoxDecoration(
+      //   image: DecorationImage(
+      //     image: AssetImage(AppAssets.souraDetailes),
+      //     fit: BoxFit.fill,
+      //   ),
+      // ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: Text(
-            QuranData.englishQuranSurah[index],
-            style: Helper.bold14White,
-          ),
-        ),
+        // appBar: AppBar(
+        //   title: Text(
+        //     QuranData.englishQuranSurah[index],
+        //     style: Helper.bold14White,
+        //   ),
+        // ),
         body: SafeArea(
           child: Column(
             spacing: Helper.screenHeight * .06,
@@ -52,24 +58,20 @@ class _SuraDetailesState extends State<SuraDetailes> {
                 style: Helper.bold16Weight,
               ),
               Expanded(
-                child: verses.isEmpty
+                child: verse.isEmpty
                     ? Center(
                         child: CircularProgressIndicator(
                           color: AppColors.primaryColor,
                         ),
                       )
-                    : ListView.separated(
-                        itemBuilder: (context, index) {
-                          return CustomContent(
-                            content: verses[index],
-                            index: index,
-                          );
-                        },
-                        separatorBuilder: (context, index) {
-                          return SizedBox(height: 20);
-                        },
-                        itemCount: verses.length,
-                      ),
+                    :  SingleChildScrollView(
+                  child: Text(
+                                        textAlign: TextAlign.center,
+                                        verse,
+                                        style: Helper.bold20White,
+                                        textDirection: TextDirection.rtl,
+                                      ),
+                    ),
               ),
             ],
           ),
@@ -78,13 +80,30 @@ class _SuraDetailesState extends State<SuraDetailes> {
     );
   }
 
-  void loadFilesQuran(int index) async {
-    String data = await rootBundle.loadString(
-      "assets/files/quran/${index + 1}.txt",
-    );
-    List<String> content = data.split("\n");
 
-    verses = content;
-    Future.delayed(Duration(seconds: 1), () => setState(() {}));
-  }
+void loadQuran(int index)async{
+   String data= await rootBundle.loadString("assets/files/quran/${index+1}.txt");
+    List<String> content=data.split("\n");
+
+
+   for (int i = 0; i < content.length; i++) {
+     content[i]+="[${i+1}]";
+   }
+   verse=content.join(" ");
+    Future.delayed(Duration(seconds: 1),() =>    setState(() {
+
+   }),);
+
+
+
+ 
+}
+
+ @override
+ void dispose() {
+   // TODO: implement dispose
+   most.getData();
+   super.dispose();
+ }
+
 }
